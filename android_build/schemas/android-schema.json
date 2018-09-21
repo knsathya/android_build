@@ -1,0 +1,128 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema",
+    "description": "Android Build Schema",
+    "type": "object",
+    "properties": {
+
+        "repo-script": {
+            "type": "string",
+            "description": "Repo script patch",
+            "default": ""
+        },
+
+        "repo-init-params": {
+            "type": "object",
+            "description": "repo init command related paramters",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "url": {
+                    "description": "repo url",
+                    "type": "string",
+                    "pattern": "((git|ssh|http(s)?)|(git@[\\w\\.]+))(:(//)?)([\\w\\.@\\:\\-~]+)(/)?"
+                },
+                "branch": {
+                    "description": "repo branch",
+                    "type": "string",
+                    "default": ""
+                },
+                "manifest": {
+                    "description": "repo manifest",
+                    "type": "string",
+                    "default": ""
+                }
+            }
+        },
+
+        "repo-sync-params": {
+            "type": "object",
+            "description": "repo sync command related paramters",
+            "properties": {
+                "options": {
+                    "description": "other sync options",
+                    "type": "string",
+                    "default": ""
+                }
+            }
+        },
+
+        "target-list": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "product",
+                    "target"
+                ],
+                "properties": {
+                    "product": {
+                        "type": "string",
+                        "description": "Lunch product name"
+                    },
+                    "target": {
+                        "type": "string",
+                        "description": "Make target name"
+                    },
+                    "options": {
+                        "description": "other make options",
+                        "type": "string",
+                        "default": ""
+                    },
+                    "cherry-pick-list": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    },
+                    "enable-build": {
+                        "type": "boolean",
+                        "description": "status of this build (enable/disable)",
+                        "default": true
+                    },
+                    "obj-clean": {
+                        "type": "string",
+                        "enum": [
+                            "all",
+                            "kernel",
+                            "none"
+                        ],
+                        "default": "none"
+                    },
+                    "upload-image": {
+                        "type": "boolean",
+                        "description": "Upload the output image to remote server",
+                        "default": false
+                    },
+                    "upload-params": {
+                        "type": "object",
+                        "description": "Upload paramaters",
+                        "properties": {
+                            "mode": {
+                                "type": "string",
+                                "description": "Mode of upload",
+                                "enum": [
+                                    "scp",
+                                    "rsync",
+                                    "git"
+                                ],
+                                "default": "scp"
+                            },
+                            "rurl": {
+                                "type": "string",
+                                "description": "Remote URL",
+                                "default": ""
+                            },
+                            "lshare": {
+                                "type": "string",
+                                "description": "Local share",
+                                "default": ""
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
