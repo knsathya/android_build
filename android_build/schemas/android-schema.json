@@ -76,6 +76,30 @@
                         },
                         "default": []
                     },
+                    "project-update-list": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "project-dir": {
+                                    "description": "Relative path of project directory (from TOP)",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "new-dir": {
+                                    "description": "Replacement directory path",
+                                    "type": "string",
+                                    "default": ""
+                                },
+                                "rurl": {
+                                    "type": "string",
+                                    "description": "Remote URL",
+                                    "default": ""
+                                }
+                            }
+                        },
+                        "default": []
+                    },
                     "enable-build": {
                         "type": "boolean",
                         "description": "status of this build (enable/disable)",
@@ -103,20 +127,31 @@
                                 "type": "string",
                                 "description": "Mode of upload",
                                 "enum": [
+                                    "cp",
                                     "scp",
                                     "rsync",
                                     "git"
                                 ],
                                 "default": "scp"
                             },
+                            "rname": {
+                                "type": "string",
+                                "description": "Remote name (used in git mode)",
+                                "default": ""
+                            },
+                            "msg": {
+                                "type": "string",
+                                "description": "Remote git upload message (used in git mode)",
+                                "default": ""
+                            },
                             "rurl": {
                                 "type": "string",
                                 "description": "Remote URL",
                                 "default": ""
                             },
-                            "lshare": {
+                            "lurl": {
                                 "type": "string",
-                                "description": "Local share",
+                                "description": "Local url (folder/filename)",
                                 "default": ""
                             }
                         }

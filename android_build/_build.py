@@ -3,6 +3,7 @@ import pyshell
 import logging
 from future.builtins import str
 import multiprocessing
+import tempfile
 from jsonparser import JSONParser
 import pkg_resources
 
@@ -153,33 +154,61 @@ class BuildAndroid(object):
         # todo: need to implement the logic
         return True
 
-    def update_project(self, path, replace_dir=None, remote=None):
+    def update_project_list(self, project_list=[]):
+        for project in project_list:
+            status = self.update_project(project["project-dir"], project["new-dir"], project["rurl"])
+            if not status:
+                return False
 
-        if not os.path.exists(os.path.abspath(path)):
+        return True
+
+    def update_project(self, project_dir, new_dir=None, remote=None):
+
+        self.logger.info(locals())
+
+        if not valid_str(project_dir):
+            self.logger.error("Invalid project dir %s", project_dir)
             return False
 
-        if replace_dir is not None and not os.path.exists(os.path.abspath(replace_dir)):
+        if not project_dir.startswith('/'):
+            project_dir = os.path.join(self.src, project_dir)
+
+        if not os.path.exists(os.path.abspath(project_dir)):
+            self.logger.error("Invalid project dir %s", project_dir)
             return False
 
-        if replace_dir is not None:
-            if os.path.exists(os.path.abspath(path) + '.old'):
-                ret = self.sh.cmd("rm %s" % os.path.abspath(path) + '.old', shell=True)
+        if valid_str(new_dir) and not os.path.exists(os.path.abspath(new_dir)):
+            self.logger.error("Invalid new dir %s", new_dir)
+            return False
+
+        if valid_str(new_dir):
+            if os.path.exists(os.path.abspath(project_dir) + '.old'):
+                ret = self.sh.cmd("rm %s" % os.path.abspath(project_dir) + '.old', shell=True)
                 if ret[0] != 0:
                     self.logger.error(ret)
 
-            ret = self.sh.cmd("mv %s %s" % (os.path.abspath(path), os.path.abspath(path) + '.old'), shell=True)
+            ret = self.sh.cmd("mv %s %s" % (os.path.abspath(project_dir), os.path.abspath(project_dir) + '.old'),
+                              shell=True)
             if ret[0] != 0:
                 self.logger.error(ret)
 
-            ret = self.sh.cmd("ln -s %s %s" % (os.path.abspath(replace_dir), os.path.basename(path)), shell=True,
-                              wd=os.path.dirname(os.path.abspath(path)))
+            ret = self.sh.cmd("ln -s %s %s" % (os.path.abspath(new_dir), os.path.basename(project_dir)), shell=True,
+                              wd=os.path.dirname(os.path.abspath(project_dir)))
             if ret[0] != 0:
                 self.logger.error(ret)
 
-        if remote is not None:
-            git = pyshell.GitShell(wd=os.path.abspath(path), init=True, remote_list=[remote[0], remote[1]], fetch_all=True)
+        if valid_str(remote):
+            remote = remote.split(',')
+            self.logger.info(remote)
+            git = pyshell.GitShell(wd=os.path.abspath(project_dir), init=True,
+                                   remote_list=[(remote[0],remote[1])], fetch_all=True,
+                                   logger=self.logger, stream_stdout=True)
             git.cmd('reset --hard')
             git.checkout(remote[0], remote[2])
+
+        self.logger.info("Updating project %s successful", project_dir)
+
+        return True
 
     def make_target(self, product, target, options='', threads=((multiprocessing.cpu_count()/4) * 3)):
 
@@ -197,9 +226,25 @@ class BuildAndroid(object):
 
         return True
 
-    def upload_image(self, mode, ldir, rurl):
+    def upload_image(self, mode, lurl, rurl, rname="", msg=""):
         # todo: need to implement the logic
-        pass
+
+        if mode == 'cp':
+            cmd = "cp %s %s" % (lurl, rurl)
+            ret = self.sh.cmd(cmd, shell=True)
+            if ret[0] != 0:
+                self.logger.error("%s failed", cmd)
+                self.logger.error(ret[1])
+                return False
+        elif mode == 'scp':
+            cmd = "cp %s %s" % (lurl, rurl)
+            ret = self.sh.cmd(cmd, shell=True)
+            if ret[0] != 0:
+                self.logger.error("%s failed", cmd)
+                self.logger.error(ret[1])
+                return False
+
+        return True
 
     def auto_build(self):
         if self.cfg is None or self.obj is None:
@@ -215,7 +260,6 @@ class BuildAndroid(object):
 
         #repo sync
         self.repo_sync(options=self.cfg["repo-sync-params"]["options"])
-
         self.repo_create_branch()
 
         #Make build
@@ -233,19 +277,29 @@ class BuildAndroid(object):
             elif item["obj-clean"] == 'kernel':
                 self.clean_kernel()
 
+            #Update if any projects needs to be updated
+            status = self.update_project_list(item["project-update-list"])
+            if not status:
+                self.logger.error("project update list failed")
+                continue
+
             # Cherry pick if any patches are required.
             status  = self.cherrypick_patches(self.src, item["cherry-pick-list"])
             if not status:
+                self.logger.error("Cherry pick list failed")
                 continue
 
             # Make the build
             status = self.make_target(item["product"], item["target"], item["options"])
             if not status:
+                self.logger.error("Build make command failed")
                 continue
 
             # Check if image needs to be uploaded
             if item["upload-image"]:
-                self.upload_image(item["mode"], item["lshare"], item["rurl"])
+                self.upload_image(item["mode"], item["lurl"], item["rurl"], item["rname"], item["msg"])
+
+        return True
 
     def __init__(self, src_dir=None, out_dir=None, repo_url=None, cfg = None, logger=None):
         self.logger = logger or logging.getLogger(__name__)
