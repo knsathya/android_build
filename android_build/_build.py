@@ -1,7 +1,7 @@
 import os
 import pyshell
 import logging
-from future.builtins import str
+from past.builtins import basestring
 import multiprocessing
 import tempfile
 from jsonparser import JSONParser
@@ -9,7 +9,7 @@ import pkg_resources
 
 
 set_val = lambda k, v: v if k is None else k
-valid_str = lambda x: True if x is not None and isinstance(x, str) and len(x) > 0 else False
+valid_str = lambda x: True if x is not None and isinstance(x, basestring) and len(x) > 0 else False
 
 def which(cmd):
     for path in os.environ["PATH"].split(os.pathsep):
@@ -174,11 +174,11 @@ class BuildAndroid(object):
             project_dir = os.path.join(self.src, project_dir)
 
         if not os.path.exists(os.path.abspath(project_dir)):
-            self.logger.error("Invalid project dir %s", project_dir)
+            self.logger.error("Invalid project dir path %s", project_dir)
             return False
 
         if valid_str(new_dir) and not os.path.exists(os.path.abspath(new_dir)):
-            self.logger.error("Invalid new dir %s", new_dir)
+            self.logger.error("Invalid new dir path %s", new_dir)
             return False
 
         if valid_str(new_dir):
