@@ -52,7 +52,9 @@
             "items": {
                 "type": "object",
                 "required": [
-                    "product",
+                    "name",
+                    "lunch-product",
+                    "out-product",
                     "target"
                 ],
                 "properties": {
@@ -60,9 +62,13 @@
                         "type": "string",
                         "description": "Unique name to identify this target"
                     },
-                    "product": {
+                    "lunch-product": {
                         "type": "string",
                         "description": "Lunch product name"
+                    },
+                    "out-product": {
+                        "type": "string",
+                        "description": "Product name used in out directory"
                     },
                     "target": {
                         "type": "string",

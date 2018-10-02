@@ -137,12 +137,12 @@ class BuildAndroid(object):
 
     def clean_kernel(self):
         if self.target is None:
-            self.logger.error("No valid target found")
+            self.logger.error("No valid target found %s", self.target)
             return False
 
-        target_dir = os.path.join(self.out, 'target', 'product', self.target)
+        target_dir = os.path.join(self.out, 'target', 'product', self.out_product)
         if not os.path.exists(target_dir):
-            self.logger.error("Target dir not found")
+            self.logger.error("Target dir %s not found", target_dir)
             return False
 
         if os.path.exists(os.path.join(target_dir, 'obj', 'kernel')):
@@ -280,6 +280,8 @@ class BuildAndroid(object):
                     continue
 
             self.target = item["target"]
+            self.lunch_product = item["lunch-product"]
+            self.out_product = item["out-product"]
 
             # Check if obj needs to be cleaned
             self.clean_default()
@@ -301,7 +303,7 @@ class BuildAndroid(object):
                 continue
 
             # Make the build
-            status = self.make_target(item["product"], item["target"], item["options"])
+            status = self.make_target(item["lunch-product"], item["target"], item["options"])
             if not status:
                 self.logger.error("Build make command failed")
                 continue
@@ -322,6 +324,8 @@ class BuildAndroid(object):
         self.out = os.path.abspath(set_val(out_dir, os.path.join(self.src, 'out')))
         self.repo = '~/bin/repo'
         self.target = None
+        self.lunch_product = None
+        self.out_product = None
         self.product_list = None
         self.valid = False
         self.schema = pkg_resources.resource_filename('android_build', 'schemas/android-schema.json')
