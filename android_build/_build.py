@@ -150,6 +150,10 @@ class BuildAndroid(object):
 
         return True
 
+
+    def clean_default(self):
+        return True
+
     def cherrypick_patches(self, path, urls=[]):
         # todo: need to implement the logic
         return True
@@ -271,7 +275,14 @@ class BuildAndroid(object):
             if not item["enable-build"]:
                 continue
 
+            if self.product_list is not None:
+                if item["name"] not in self.product_list:
+                    continue
+
+            self.target = item["target"]
+
             # Check if obj needs to be cleaned
+            self.clean_default()
             if item["obj-clean"] == 'all':
                 self.clean_all()
             elif item["obj-clean"] == 'kernel':
@@ -301,6 +312,9 @@ class BuildAndroid(object):
 
         return True
 
+    def set_product_list(self, products=None):
+        self.product_list = products
+
     def __init__(self, src_dir=None, out_dir=None, repo_url=None, cfg = None, logger=None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -308,6 +322,7 @@ class BuildAndroid(object):
         self.out = os.path.abspath(set_val(out_dir, os.path.join(self.src, 'out')))
         self.repo = '~/bin/repo'
         self.target = None
+        self.product_list = None
         self.valid = False
         self.schema = pkg_resources.resource_filename('android_build', 'schemas/android-schema.json')
         self.cfg = None

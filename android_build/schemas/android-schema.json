@@ -56,6 +56,10 @@
                     "target"
                 ],
                 "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Unique name to identify this target"
+                    },
                     "product": {
                         "type": "string",
                         "description": "Lunch product name"
