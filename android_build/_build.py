@@ -339,6 +339,9 @@ class BuildAndroid(object):
             self.obj = JSONParser(self.schema, cfg, extend_defaults=True, os_env=True, logger=logger)
             self.cfg = self.obj.get_cfg()
             repo_url = self.cfg["repo-script"] if valid_str(self.cfg["repo-script"]) else repo_url
+            repo_dir = self.cfg.get("repo-dir", None)
+            if valid_str(repo_dir):
+                self.src = os.path.path(self.src, repo_dir)
 
         if not self._get_repo_script(repo_url):
             self.logger.error("repo setup failed")

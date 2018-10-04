@@ -47,6 +47,12 @@
             }
         },
 
+        "repo-dir": {
+            "type": "string",
+            "description": "Repo dir",
+            "default": ""
+        },
+
         "target-list": {
             "type": "array",
             "items": {
