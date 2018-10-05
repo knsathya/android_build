@@ -103,7 +103,7 @@ class BuildAndroid(object):
             self.logger.error("Invalid repo")
             return False
 
-        ret = self.sh.cmd('%s forall -vc "git reset --hard"' % self.repo, shell=True)
+        ret = self.sh.cmd('%s forall -vc "git clean -fdx;git checkout HEAD;git reset --hard"' % self.repo, shell=True)
         if ret[0] != 0:
             self.logger.error(ret)
         ret = self.sh.cmd(self.repo, 'sync -d', shell=True)
@@ -142,8 +142,8 @@ class BuildAndroid(object):
 
         target_dir = os.path.join(self.out, 'target', 'product', self.out_product)
         if not os.path.exists(target_dir):
-            self.logger.error("Target dir %s not found", target_dir)
-            return False
+            self.logger.warn("Target dir %s not found", target_dir)
+            return True
 
         if os.path.exists(os.path.join(target_dir, 'obj', 'kernel')):
             self.sh.cmd("rm -fr %s" % os.path.join(target_dir, 'obj', 'kernel'), shell=True)
